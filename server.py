@@ -40,9 +40,20 @@ def extract_zaytona(text: str) -> dict:
 
 # 2. تعريف خادم FastAPI المخصص لـ ChatGPT
 app = FastAPI(
-    title="Zaytona API for ChatGPT",
-    description="واجهة برمجة تطبيقات خادم الزيتونة المتوافقة مع إجراءات GPT (GPT Actions).",
+    title="Zaytona API",
+    description="API to extract the core cognitive capsule (Principle, Application, Effect) from any text.",
     version="1.0.0"
+)
+
+# تفعيل CORS Middleware لضمان السماح لـ ChatGPT بالاتصال بالخادم والتحقق منه دون مشاكل
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 from fastapi.openapi.utils import get_openapi
@@ -51,18 +62,18 @@ def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = get_openapi(
-        title=app.title,
-        version=app.version,
-        description=app.description,
+        title="Zaytona API",
+        version="1.0.0",
+        description="API to extract the core cognitive capsule (Principle, Application, Effect) from any text.",
         routes=app.routes,
     )
     # إجبار مواصفات OpenAPI على الإصدار 3.0.0 المتوافق تماماً مع ChatGPT Actions
     openapi_schema["openapi"] = "3.0.0"
-    # إضافة رابط السيرفر الافتراضي ليتم التعرف عليه تلقائياً عند الاستيراد عبر الرابط
+    # إضافة رابط السيرفر الافتراضي بالإنجليزية لتجنب أي مشاكل في معالجة الحروف غير اللاتينية
     openapi_schema["servers"] = [
         {
             "url": "https://zaytona-mcp.onrender.com",
-            "description": "خادم الزيتونة المعرفي السحابي (Render)"
+            "description": "Zaytona Production Server"
         }
     ]
     app.openapi_schema = openapi_schema
@@ -78,10 +89,11 @@ class ExtractResponse(BaseModel):
     application: str
     effect: str
 
-@app.get("/", summary="صفحة الترحيب وحالة الخادم")
+@app.get("/", summary="صفحة الترحيب وحالة الخادم", include_in_schema=False)
 def root_endpoint():
     """
     الصفحة الرئيسية للخادم للتأكد من عمله بنجاح وتوفير الروابط الأساسية.
+    (تم استثناؤها من الـ OpenAPI لتبسيط المخطط لـ ChatGPT)
     """
     return {
         "status": "active",
@@ -93,7 +105,12 @@ def root_endpoint():
         }
     }
 
-@app.post("/extract", response_model=ExtractResponse, summary="استخراج الزيتونة المعرفية")
+@app.post(
+    "/extract",
+    response_model=ExtractResponse,
+    summary="Extract Cognitive Capsule",
+    description="Extracts the core principle, application, and effect from the given text."
+)
 def extract_api(request: ExtractRequest):
     """
     نقطة اتصال REST API مخصصة لاستقبال النصوص وإرجاع الزيتونة المعرفية مباشرة لـ ChatGPT.
