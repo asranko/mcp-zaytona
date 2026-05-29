@@ -45,6 +45,31 @@ app = FastAPI(
     version="1.0.0"
 )
 
+from fastapi.openapi.utils import get_openapi
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
+    # إجبار مواصفات OpenAPI على الإصدار 3.0.0 المتوافق تماماً مع ChatGPT Actions
+    openapi_schema["openapi"] = "3.0.0"
+    # إضافة رابط السيرفر الافتراضي ليتم التعرف عليه تلقائياً عند الاستيراد عبر الرابط
+    openapi_schema["servers"] = [
+        {
+            "url": "https://zaytona-mcp.onrender.com",
+            "description": "خادم الزيتونة المعرفي السحابي (Render)"
+        }
+    ]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
+
 class ExtractRequest(BaseModel):
     text: str
 
@@ -52,6 +77,21 @@ class ExtractResponse(BaseModel):
     principle: str
     application: str
     effect: str
+
+@app.get("/", summary="صفحة الترحيب وحالة الخادم")
+def root_endpoint():
+    """
+    الصفحة الرئيسية للخادم للتأكد من عمله بنجاح وتوفير الروابط الأساسية.
+    """
+    return {
+        "status": "active",
+        "message": "مرحباً بك في خادم الزيتونة المعرفي! الخادم يعمل بنجاح وثنائي البروتوكول.",
+        "endpoints": {
+            "chatgpt_openapi": "https://zaytona-mcp.onrender.com/openapi.json",
+            "interactive_docs": "https://zaytona-mcp.onrender.com/docs",
+            "mcp_sse": "https://zaytona-mcp.onrender.com/mcp/sse"
+        }
+    }
 
 @app.post("/extract", response_model=ExtractResponse, summary="استخراج الزيتونة المعرفية")
 def extract_api(request: ExtractRequest):
