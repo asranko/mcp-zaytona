@@ -25,11 +25,15 @@ try:
 except Exception:
     pass
 
-# إضافة مسار مكتبة التفسير محلياً إذا كان متوفراً (لتسهيل التطوير المحلي)
+# إضافة مسار مجلد السيرفر لضمان استخدام حزمة tafsir المدمجة محلياً أولاً سحابياً ومحلياً
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+if CURRENT_DIR not in sys.path:
+    sys.path.insert(0, CURRENT_DIR)
+
+# إضافة مسار مكتبة التفسير محلياً الاحتياطي إذا كان متوفراً
 TAFSIR_MCP_SRC = "C:\\Users\\moasran\\Desktop\\tafser\\tafsir-mcp\\src"
-if os.path.exists(TAFSIR_MCP_SRC):
-    if TAFSIR_MCP_SRC not in sys.path:
-        sys.path.append(TAFSIR_MCP_SRC)
+if os.path.exists(TAFSIR_MCP_SRC) and TAFSIR_MCP_SRC not in sys.path:
+    sys.path.append(TAFSIR_MCP_SRC)
 
 # 1. تعريف خادم FastMCP الأساسي لـ Claude
 mcp = FastMCP("Zaytona")

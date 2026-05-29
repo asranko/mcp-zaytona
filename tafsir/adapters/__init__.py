@@ -1,0 +1,52 @@
+from tafsir.adapters.base import TafsirAdapter
+from tafsir.adapters.quran_db import QuranDBAdapter
+from tafsir.adapters.jalalayn import JalalaynAdapter
+from tafsir.adapters.extended import ExtendedTafsirAdapter
+from tafsir.models import TafsirSource
+
+ADAPTERS: dict[TafsirSource, TafsirAdapter] = {
+    TafsirSource.tabary: QuranDBAdapter(TafsirSource.tabary),
+    TafsirSource.katheer: QuranDBAdapter(TafsirSource.katheer),
+    TafsirSource.baghawy: QuranDBAdapter(TafsirSource.baghawy),
+    TafsirSource.saadi: QuranDBAdapter(TafsirSource.saadi),
+    TafsirSource.moyassar: QuranDBAdapter(TafsirSource.moyassar),
+    TafsirSource.mukhtasar_ar: QuranDBAdapter(TafsirSource.mukhtasar_ar),
+    TafsirSource.mukhtasar_en: QuranDBAdapter(TafsirSource.mukhtasar_en),
+    TafsirSource.mukhtasar_bn: QuranDBAdapter(TafsirSource.mukhtasar_bn),
+    TafsirSource.jalalayn: JalalaynAdapter(),
+    TafsirSource.tahrir_wa_tanwir: ExtendedTafsirAdapter("tahrir_wa_tanwir"),
+    TafsirSource.qurtubi: ExtendedTafsirAdapter("qurtubi"),
+    TafsirSource.kashshaf: ExtendedTafsirAdapter("kashshaf"),
+    TafsirSource.mafatih_al_ghayb: ExtendedTafsirAdapter("mafatih_al_ghayb"),
+    TafsirSource.mizan: ExtendedTafsirAdapter("mizan"),
+    TafsirSource.ruh_al_maani: ExtendedTafsirAdapter("ruh_al_maani"),
+    TafsirSource.fath_al_qadir: ExtendedTafsirAdapter("fath_al_qadir"),
+    TafsirSource.adwa_al_bayan: ExtendedTafsirAdapter("adwa_al_bayan"),
+    TafsirSource.sharawi: ExtendedTafsirAdapter("sharawi"),
+    TafsirSource.wasit: ExtendedTafsirAdapter("wasit"),
+    TafsirSource.bayani: ExtendedTafsirAdapter("bayani"),
+    TafsirSource.fi_zilal: ExtendedTafsirAdapter("fi_zilal"),
+    TafsirSource.qushayri: ExtendedTafsirAdapter("qushayri"),
+    TafsirSource.ibn_ajiba: ExtendedTafsirAdapter("ibn_ajiba"),
+    TafsirSource.nasafi: ExtendedTafsirAdapter("nasafi"),
+    TafsirSource.abu_al_saud: ExtendedTafsirAdapter("abu_al_saud"),
+    TafsirSource.baydawi: ExtendedTafsirAdapter("baydawi"),
+    TafsirSource.khazin: ExtendedTafsirAdapter("khazin"),
+    TafsirSource.ibn_juzayy: ExtendedTafsirAdapter("ibn_juzayy"),
+    TafsirSource.thalabi: ExtendedTafsirAdapter("thalabi"),
+    TafsirSource.mawirdi: ExtendedTafsirAdapter("mawirdi"),
+    TafsirSource.samani: ExtendedTafsirAdapter("samani"),
+    TafsirSource.raghib_isfahani: ExtendedTafsirAdapter("raghib_isfahani"),
+    TafsirSource.ibn_atiyya: ExtendedTafsirAdapter("ibn_atiyya"),
+    TafsirSource.zad_al_masir: ExtendedTafsirAdapter("zad_al_masir"),
+    TafsirSource.bahr_al_muhit: ExtendedTafsirAdapter("bahr_al_muhit"),
+    TafsirSource.samarqandi: ExtendedTafsirAdapter("samarqandi"),
+    TafsirSource.ibn_abi_hatim: ExtendedTafsirAdapter("ibn_abi_hatim"),
+    TafsirSource.wahidi_wasit: ExtendedTafsirAdapter("wahidi_wasit"),
+    TafsirSource.wahidi_wajiz: ExtendedTafsirAdapter("wahidi_wajiz"),
+    TafsirSource.izz_bin_abd_salam: ExtendedTafsirAdapter("izz_bin_abd_salam"),
+    TafsirSource.ibn_rajab: ExtendedTafsirAdapter("ibn_rajab"),
+    TafsirSource.maturidi: ExtendedTafsirAdapter("maturidi"),
+}
+
+__all__ = ["TafsirAdapter", "ADAPTERS"]
