@@ -294,6 +294,11 @@ def search_api(request: SearchRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/mcp", summary="مخطط OpenAPI المباشر عبر مسار mcp", include_in_schema=False)
+def mcp_openapi_endpoint():
+    # إرجاع مخطط OpenAPI مباشرة عند طلب /mcp لتسهيل الربط بالرابط الذي ينتهي بـ mcp في ChatGPT
+    return app.openapi()
+
 # دمج تطبيق MCP داخل FastAPI كـ ASGI App
 try:
     app.mount("/mcp", mcp.get_asgi_app())
