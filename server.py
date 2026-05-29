@@ -163,11 +163,22 @@ def extract_zaytona_from_ayah(surah: int, ayah: int) -> dict:
         return {"error": f"فشل استخراج الزيتونة للآية: {e}"}
 
 
+# تهيئة تطبيق FastMCP HTTP والحصول على lifespan الخاص به
+# هذا ضروري لتفادي خطأ "Task group is not initialized" عند التشغيل
+try:
+    mcp_http = mcp.http_app()
+    mcp_lifespan = mcp_http.lifespan
+except Exception as e:
+    print(f"⚠️ فشل تهيئة تطبيق MCP HTTP: {e}")
+    mcp_http = None
+    mcp_lifespan = None
+
 # 2. تعريف خادم FastAPI المخصص لـ ChatGPT
 app = FastAPI(
     title="Zaytona API",
     description="API to extract the core cognitive capsule (Principle, Application, Effect) from any text, integrated with classical Islamic Tafsirs.",
-    version="1.1.0"
+    version="1.1.0",
+    lifespan=mcp_lifespan
 )
 
 # تفعيل CORS Middleware لضمان السماح لـ ChatGPT بالاتصال بالخادم والتحقق منه دون مشاكل
@@ -294,20 +305,19 @@ def search_api(request: SearchRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/mcp", summary="مخطط OpenAPI المباشر عبر مسار mcp", include_in_schema=False)
-def mcp_openapi_endpoint():
-    # إرجاع مخطط OpenAPI مباشرة عند طلب /mcp لتسهيل الربط بالرابط الذي ينتهي بـ mcp في ChatGPT
-    return app.openapi()
-
-# دمج تطبيق MCP داخل FastAPI كـ ASGI App
-try:
-    app.mount("/mcp", mcp.get_asgi_app())
-except Exception:
-    pass
+# دمج تطبيق MCP داخل FastAPI بدعم Streamable HTTP الحديث
+# هذا يجعل الرابط https://zaytona-mcp.onrender.com/mcp متوافقاً مع ChatGPT Connectors مباشرة
+if mcp_http is not None:
+    try:
+        app.mount("/", mcp_http)
+        print("✅ تم دمج تطبيق MCP Streamable HTTP بنجاح عند المسار /")
+    except Exception as e:
+        print(f"⚠️ فشل تركيب تطبيق MCP HTTP: {e}")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     print(f"Running dual-protocol server on port {port}...")
     print(f"- ChatGPT REST API: http://127.0.0.1:{port}/extract")
-    print(f"- MCP SSE Endpoint: http://127.0.0.1:{port}/mcp/sse")
+    print(f"- MCP Endpoint:     http://127.0.0.1:{port}/mcp")
     uvicorn.run(app, host="0.0.0.0", port=port)
+
