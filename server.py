@@ -67,8 +67,8 @@ def custom_openapi():
         description="API to extract the core cognitive capsule (Principle, Application, Effect) from any text.",
         routes=app.routes,
     )
-    # إجبار مواصفات OpenAPI على الإصدار 3.0.0 المتوافق تماماً مع ChatGPT Actions
-    openapi_schema["openapi"] = "3.0.0"
+    # إجبار مواصفات OpenAPI على الإصدار 3.1.0 المتوافق تماماً مع متطلبات ChatGPT الحديثة
+    openapi_schema["openapi"] = "3.1.0"
     # إضافة رابط السيرفر الافتراضي بالإنجليزية لتجنب أي مشاكل في معالجة الحروف غير اللاتينية
     openapi_schema["servers"] = [
         {
