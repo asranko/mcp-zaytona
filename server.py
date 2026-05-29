@@ -309,6 +309,98 @@ def search_api(request: SearchRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get(
+    "/debug",
+    summary="Debug DB Status",
+    description="Returns the disk status of all three tafsir databases on Render.",
+    include_in_schema=False
+)
+def debug_db_status():
+    import sqlite3
+    from pathlib import Path
+    from tafsir.data_loader import get_db_path, get_jalalayn_db_path, get_extended_db_path
+
+    info = {}
+
+    # quran.db
+    try:
+        p = Path(os.path.expanduser("~/.cache/tafsir-mcp/quran.db"))
+        info["quran_db"] = {
+            "path": str(p),
+            "exists": p.exists(),
+            "size_mb": round(p.stat().st_size / 1024 / 1024, 1) if p.exists() else 0
+        }
+        if p.exists():
+            conn = sqlite3.connect(str(p))
+            tables = [r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+            info["quran_db"]["tables"] = tables
+            conn.close()
+    except Exception as e:
+        info["quran_db"] = {"error": str(e)}
+
+    # jalalayn.db
+    try:
+        p2 = Path(os.path.expanduser("~/.cache/tafsir-mcp/jalalayn.db"))
+        info["jalalayn_db"] = {
+            "path": str(p2),
+            "exists": p2.exists(),
+            "size_mb": round(p2.stat().st_size / 1024 / 1024, 1) if p2.exists() else 0
+        }
+    except Exception as e:
+        info["jalalayn_db"] = {"error": str(e)}
+
+    # extended_tafsir.db
+    try:
+        p3 = Path(os.path.expanduser("~/.cache/tafsir-mcp/extended_tafsir.db"))
+        info["extended_db"] = {
+            "path": str(p3),
+            "exists": p3.exists(),
+            "size_mb": round(p3.stat().st_size / 1024 / 1024, 1) if p3.exists() else 0
+        }
+        if p3.exists():
+            conn3 = sqlite3.connect(str(p3))
+            count = conn3.execute("SELECT COUNT(*) FROM tafsir_content").fetchone()[0]
+            sources = [r[0] for r in conn3.execute("SELECT DISTINCT source FROM tafsir_content ORDER BY source").fetchall()]
+            info["extended_db"]["row_count"] = count
+            info["extended_db"]["sources"] = sources
+            conn3.close()
+    except Exception as e:
+        info["extended_db"] = {"error": str(e)}
+
+    # disk usage
+    try:
+        cache_dir = Path(os.path.expanduser("~/.cache/tafsir-mcp"))
+        total_size = sum(f.stat().st_size for f in cache_dir.glob("*.db") if f.is_file())
+        info["total_cache_size_mb"] = round(total_size / 1024 / 1024, 1)
+    except Exception:
+        pass
+
+    return info
+
+@app.get(
+    "/sources",
+    summary="List All Tafsir Sources",
+    description="Returns a list of all 35 tafsir sources available in the system."
+)
+def list_sources():
+    from tafsir.models import TafsirSource, TAFSIR_ATTRIBUTIONS
+    sources = []
+    quran_db_sources = {"tabary","katheer","baghawy","saadi","moyassar","mukhtasar_ar","mukhtasar_en","mukhtasar_bn"}
+    jalalayn_sources = {"jalalayn"}
+    for src in TafsirSource:
+        if src.value in quran_db_sources:
+            db = "quran.db"
+        elif src.value in jalalayn_sources:
+            db = "jalalayn.db"
+        else:
+            db = "extended_tafsir.db"
+        sources.append({
+            "key": src.value,
+            "attribution": TAFSIR_ATTRIBUTIONS.get(src, ""),
+            "database": db
+        })
+    return {"total": len(sources), "sources": sources}
+
 # دمج تطبيق MCP داخل FastAPI بدعم Streamable HTTP الحديث
 # هذا يجعل الرابط https://zaytona-mcp.onrender.com/mcp متوافقاً مع ChatGPT Connectors مباشرة
 if mcp_http is not None:
