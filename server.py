@@ -242,6 +242,40 @@ class SearchRequest(BaseModel):
     query: str
     limit: int = 10
 
+class SurahRequest(BaseModel):
+    surah: int = Field(ge=1, le=114, description="رقم السورة من 1 إلى 114")
+
+class WordRequest(BaseModel):
+    surah: int = Field(ge=1, le=114, description="رقم السورة من 1 إلى 114")
+    ayah: int = Field(ge=1, description="رقم الآية في السورة")
+    word_no: int = Field(ge=1, description="رقم الكلمة في الآية (يبدأ من 1)")
+    aspects: list[str] | None = Field(default=None, description="الطبقات التحليلية المطلوبة: meaning, irab, sarf, statistics, qeraat")
+
+class RootOccurrencesRequest(BaseModel):
+    root: str = Field(description="الجذر اللغوي للبحث (مثال: رحم، كتب)")
+    limit: int = Field(default=50, ge=1, le=500, description="الحد الأقصى لعدد النتائج")
+
+class RootStatsRequest(BaseModel):
+    root: str = Field(description="الجذر اللغوي المراد عرض إحصائياته (مثال: رحم، كتب)")
+
+class QeraatRequest(BaseModel):
+    surah: int = Field(ge=1, le=114, description="رقم السورة من 1 إلى 114")
+    ayah: int = Field(ge=1, description="رقم الآية في السورة")
+    word_no: int | None = Field(default=None, description="رقم الكلمة اختيارياً لعرض قراءات كلمة معينة")
+
+class NuzoolRequest(BaseModel):
+    surah: int = Field(ge=1, le=114, description="رقم السورة من 1 إلى 114")
+    ayah: int = Field(ge=1, description="رقم الآية في السورة")
+
+class PageRequest(BaseModel):
+    page: int = Field(ge=1, le=604, description="رقم صفحة المصحف من 1 إلى 604")
+
+class TafsirSearchRequest(BaseModel):
+    query: str = Field(description="نص البحث المراد البحث عنه في التفاسير")
+    source: str = Field(default="saadi", description="رمز التفسير المختار (مثال: saadi, katheer, qurtubi, sharawi, tabary)")
+    surah_filter: list[int] | None = Field(default=None, description="قائمة اختيارية بأرقام السور لتصفية نتائج البحث")
+    limit: int = Field(default=20, ge=1, le=100, description="الحد الأقصى لعدد النتائج")
+
 @app.get("/", summary="مخطط OpenAPI المباشر", include_in_schema=False)
 def root_endpoint():
     # إرجاع مخطط OpenAPI مباشرة لتسهيل الربط في ChatGPT بالرابط الأساسي للسيرفر فقط دون أي مسارات إضافية
@@ -305,6 +339,154 @@ def get_ayah_api(request: AyahRequest):
 def search_api(request: SearchRequest):
     try:
         result = search_quran_text(request.query, limit=request.limit)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/surah/info",
+    summary="Get Surah General Info",
+    description="Returns general information about a specific Surah, such as its name, names info, virtues, goals, and revelation order."
+)
+def get_surah_info_api(request: SurahRequest):
+    try:
+        from tafsir.tools.surah import get_surah_info
+        result = get_surah_info(request.surah)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/surah/stats",
+    summary="Get Surah Statistics",
+    description="Returns detailed statistics for a specific Surah (word count, letter count, longest word, most frequent word, etc.)."
+)
+def get_surah_stats_api(request: SurahRequest):
+    try:
+        from tafsir.tools.stats import get_surah_statistics_summary
+        result = get_surah_statistics_summary(request.surah)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/word/analysis",
+    summary="Analyze Word",
+    description="Analyzes a specific word in an ayah, showing its grammatical analysis (i'rab), morphology (sarf), vocabulary meaning, root, and frequency."
+)
+def get_word_analysis_api(request: WordRequest):
+    try:
+        from tafsir.models import SURAH_AYAH_COUNTS
+        if request.ayah > SURAH_AYAH_COUNTS.get(request.surah, 286):
+            raise HTTPException(status_code=400, detail="رقم الآية خارج حدود السورة")
+        
+        from tafsir.tools.word import get_word_analysis
+        result = get_word_analysis(request.surah, request.ayah, request.word_no, request.aspects)
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/root/occurrences",
+    summary="Find Root Occurrences",
+    description="Finds all occurrences of a specific root in the Holy Quran (e.g., 'رحم', 'كتب'), listing surah, ayah, word number, and frequency."
+)
+def find_root_occurrences_api(request: RootOccurrencesRequest):
+    try:
+        from tafsir.tools.word import search_by_root
+        result = search_by_root(request.root, limit=request.limit)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/root/stats",
+    summary="Get Root Statistics",
+    description="Returns aggregate statistics for a specific linguistic root (total occurrences, number of unique surahs/ayahs, and distinct morphological forms)."
+)
+def get_root_stats_api(request: RootStatsRequest):
+    try:
+        from tafsir.tools.word import get_root_statistics
+        result = get_root_statistics(request.root)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/qeraat",
+    summary="Compare Qeraat Variants",
+    description="Compares different authentic Quranic readings (Qeraat) and variant pronunciations for a specific ayah or word."
+)
+def compare_qeraat_api(request: QeraatRequest):
+    try:
+        from tafsir.models import SURAH_AYAH_COUNTS
+        if request.ayah > SURAH_AYAH_COUNTS.get(request.surah, 286):
+            raise HTTPException(status_code=400, detail="رقم الآية خارج حدود السورة")
+        
+        from tafsir.tools.qeraat import compare_qeraat
+        result = compare_qeraat(request.surah, request.ayah, request.word_no)
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/nuzool",
+    summary="Get Ayah Nuzool Context",
+    description="Returns the recorded context or cause of revelation (Asbab al-Nuzool) for a specific ayah, if documented in reliable sources."
+)
+def get_nuzool_api(request: NuzoolRequest):
+    try:
+        from tafsir.models import SURAH_AYAH_COUNTS
+        if request.ayah > SURAH_AYAH_COUNTS.get(request.surah, 286):
+            raise HTTPException(status_code=400, detail="رقم الآية خارج حدود السورة")
+        
+        from tafsir.tools.ayah import get_ayah_nuzool
+        result = get_ayah_nuzool(request.surah, request.ayah)
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get(
+    "/quran/overview",
+    summary="Get Quran General Overview",
+    description="Returns aggregate statistics and a general overview of the entire Quran (number of surahs, ayahs, unique roots, Makki/Madani surahs, pages)."
+)
+def get_quran_overview_api():
+    try:
+        from tafsir.tools.stats import get_quran_statistics
+        result = get_quran_statistics()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/quran/fawaed",
+    summary="Get Page Fawaed",
+    description="Returns analytical, spiritual, or linguistic benefits (Fawaed) and insights recorded in 'Al-Mukhtasar' for a specific page of the Quran."
+)
+def get_page_fawaed_api(request: PageRequest):
+    try:
+        from tafsir.tools.stats import get_page_fawaed
+        result = get_page_fawaed(request.page)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/search/tafsir",
+    summary="Search Tafsir Content",
+    description="Searches for matching text snippets inside a specific tafsir source (e.g., saadi, katheer, qurtubi) with optional surah filters."
+)
+def search_tafsir_api(request: TafsirSearchRequest):
+    try:
+        from tafsir.tools.search import search_tafsir
+        result = search_tafsir(request.query, source=request.source, surah_filter=request.surah_filter, limit=request.limit)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
