@@ -402,13 +402,15 @@ def list_sources():
     return {"total": len(sources), "sources": sources}
 
 # دمج تطبيق MCP داخل FastAPI بدعم Streamable HTTP الحديث
-# هذا يجعل الرابط https://zaytona-mcp.onrender.com/mcp متوافقاً مع ChatGPT Connectors مباشرة
+# المسار "/" - وسيرث FastMCP مسار /mcp داخلياً
+# ملاحظة: مسارات FastAPI (@app.get/@app.post) لها أولوية على Mount في Starlette
 if mcp_http is not None:
     try:
         app.mount("/", mcp_http)
-        print("✅ تم دمج تطبيق MCP Streamable HTTP بنجاح عند المسار /")
+        print("✅ تم دمج تطبيق MCP Streamable HTTP بنجاح عند المسار /mcp")
     except Exception as e:
         print(f"⚠️ فشل تركيب تطبيق MCP HTTP: {e}")
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
