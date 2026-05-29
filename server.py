@@ -66,7 +66,7 @@ try:
 
     @mcp.resource("quran://tafsirs")
     def tafsirs_catalog() -> str:
-        """فهرس 9 مصادر تفسيرية مع كامل بيانات الإสนاد (JSON)."""
+        """فهرس 42 مصدراً تفسيرياً مع كامل بيانات الإسناد (JSON)."""
         return catalogs.get_tafsirs_catalog()
 
     @mcp.resource("quran://schema")

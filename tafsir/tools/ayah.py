@@ -78,8 +78,17 @@ def get_ayah_tafsir(
     """جلب تفسير آية من مصدر أو أكثر.
 
     sources: قائمة المصادر المطلوبة (default: ['saadi']).
-    القيم المتاحة: tabary, katheer, baghawy, saadi, moyassar,
-                   mukhtasar_ar, mukhtasar_en, mukhtasar_bn, jalalayn
+    القيم المتاحة:
+    1. الأساسية:
+       tabary, katheer, baghawy, saadi, moyassar, mukhtasar_ar, mukhtasar_en, mukhtasar_bn
+    2. الجلالين:
+       jalalayn
+    3. الموسعة (33 تفسيراً إضافياً):
+       tahrir_wa_tanwir, qurtubi, kashshaf, mafatih_al_ghayb, mizan, ruh_al_maani, fath_al_qadir,
+       adwa_al_bayan, sharawi, wasit, bayani, fi_zilal, qushayri, ibn_ajiba, nasafi, abu_al_saud,
+       baydawi, khazin, ibn_juzayy, thalabi, mawirdi, samani, raghib_isfahani, ibn_atiyya,
+       zad_al_masir, bahr_al_muhit, samarqandi, ibn_abi_hatim, wahidi_wasit, wahidi_wajiz,
+       izz_bin_abd_salam, ibn_rajab, maturidi
     """
     ref = AyahReference(surah=surah, ayah=ayah)
     requested = [TafsirSource(s) for s in (sources or ["saadi"])]
