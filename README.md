@@ -69,9 +69,9 @@ pip install -r requirements.txt
    * قم بإنشاء حساب أو تسجيل الدخول عبر GitHub.
    * اضغط على **New** ثم اختر **Web Service**.
    * اربط مستودع GitHub الخاص بالمشروع.
-   * سيقوم Render تلقائياً باكتشاف ملف `render.yaml` وسيتعرف على إعدادات التشغيل والبناء دون تدخل منك:
+    * سيقوم Render تلقائياً باكتشاف ملف `render.yaml` وسيتعرف على إعدادات التشغيل والبناء دون تدخل منك:
      - **أمر البناء (Build Command):** `pip install -r requirements.txt`
-     - **أمر البدء (Start Command):** `fastmcp run server.py -t sse`
+     - **أمر البدء (Start Command):** `python server.py`
    * اضغط على **Deploy**.
 
 بعد اكتمال عملية البناء خلال دقائق، ستحصل على رابط الخدمة العام، وسيكون بالشكل التالي:
@@ -88,12 +88,13 @@ pip install -r requirements.txt
   "mcpServers": {
     "zaytona-mcp-remote": {
       "sse": {
-        "url": "https://zaytona-mcp.onrender.com/sse"
+        "url": "https://zaytona-mcp.onrender.com/mcp/sse"
       }
     }
   }
 }
 ```
+
 
 ---
 
