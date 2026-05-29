@@ -141,7 +141,136 @@ def get_ayah_nuzool(surah: int, ayah: int) -> dict:
     }
 
 
+def get_deep_ayah_analysis(
+    surah: int,
+    ayah: int,
+    sources: list[str] | None = None,
+) -> dict:
+    """تحليل معرفي وبحثي موحد لآية قرآنية يجمع التفسير، الكلمات، الإعراب، الصرف، أسباب النزول، والقراءات.
+
+    surah: رقم السورة (1-114).
+    ayah: رقم الآية.
+    sources: قائمة اختيارية بمصادر التفسير المطلوبة.
+    """
+    ref = AyahReference(surah=surah, ayah=ayah)
+    
+    # 1. جلب بيانات السورة الأساسية
+    surah_row = query_one(
+        "SELECT surahName, makkiMadani FROM surah_stats WHERE surahNo = ?",
+        (ref.surah,),
+    )
+    surah_name = surah_row["surahName"] if surah_row else ""
+    revelation_type = surah_row["makkiMadani"] if surah_row else ""
+
+    # 2. جلب نص الآية الكريمة وعدد الكلمات
+    ayah_data = get_ayah(ref.surah, ref.ayah)
+
+    # 3. جلب أسباب النزول
+    nuzool_data = get_ayah_nuzool(ref.surah, ref.ayah)
+
+    # 4. جلب القراءات المختلفة للآية
+    qeraat_rows = query_all(
+        "SELECT q.wordNo, q.content, q.note, r.word"
+        " FROM qeraat_info q"
+        " JOIN word_content_rasm r"
+        "   ON r.surahNo=q.surahNo AND r.ayahNo=q.ayahNo AND r.wordNo=q.wordNo"
+        " WHERE q.surahNo = ? AND q.ayahNo = ?"
+        "   AND q.content LIKE '@%'"
+        " ORDER BY q.wordNo",
+        (ref.surah, ref.ayah),
+    )
+    qeraat_entries = []
+    for r in qeraat_rows:
+        if r["content"].startswith("لا خلاف بين القراء"):
+            continue
+        entry = {
+            "word_no": r["wordNo"],
+            "word": r["word"],
+            "qeraat_raw": r["content"],
+        }
+        if r.get("note"):
+            entry["note"] = r["note"]
+        qeraat_entries.append(entry)
+
+    # 5. جلب التفاسير المطلوبة (افتراضياً: الميسر، السعدي، ابن كثير، القرطبي، في ظلال القرآن)
+    active_sources = sources or ["moyassar", "saadi", "katheer", "qurtubi", "fi_zilal"]
+    tafsir_data = get_ayah_tafsir(ref.surah, ref.ayah, active_sources)
+
+    # 6. جلب التحليل اللغوي لجميع الكلمات في دفعة واحدة (Bulk Fetch) لضمان الكفاءة القصوى
+    words_rows = query_all(
+        "SELECT r.wordNo, r.word, r.rasm,"
+        "       m.meaning,"
+        "       i.irabMushakkal,"
+        "       s.sarf,"
+        "       ws.root, ws.repeatitionCount"
+        " FROM word_content_rasm r"
+        " LEFT JOIN word_content_meaning m"
+        "   ON m.surahNo=r.surahNo AND m.ayahNo=r.ayahNo AND m.wordNo=r.wordNo"
+        " LEFT JOIN word_content_irab i"
+        "   ON i.surahNo=r.surahNo AND i.ayahNo=r.ayahNo AND i.wordNo=r.wordNo"
+        " LEFT JOIN word_content_sarf s"
+        "   ON s.surahNo=r.surahNo AND s.ayahNo=r.ayahNo AND s.wordNo=r.wordNo"
+        " LEFT JOIN word_statistics ws"
+        "   ON ws.surahNo=r.surahNo AND ws.ayahNo=r.ayahNo AND ws.wordNo=r.wordNo"
+        " WHERE r.surahNo = ? AND r.ayahNo = ?"
+        " ORDER BY r.wordNo",
+        (ref.surah, ref.ayah),
+    )
+    
+    words_analysis = []
+    for row in words_rows:
+        rasm_note = row["rasm"] if row["rasm"] and row["rasm"] != "-" else None
+        w_data = {
+            "word_no": row["wordNo"],
+            "word": row["word"],
+            "meaning": row["meaning"],
+            "irab": row["irabMushakkal"],
+            "sarf": row["sarf"],
+            "root": row["root"],
+            "frequency": row["repeatitionCount"],
+        }
+        if rasm_note:
+            w_data["rasm_note"] = rasm_note
+        words_analysis.append(w_data)
+
+    # 7. صياغة الهيكل المعرفي الفريد للـ Cognitive Insights وإرشادات العرض
+    saadi_text = ""
+    katheer_text = ""
+    for entry in tafsir_data.get("tafsirs", []):
+        if entry["source"] == "saadi":
+            saadi_text = entry["text"]
+        elif entry["source"] == "katheer":
+            katheer_text = entry["text"]
+            
+    cognitive_insights = {
+        "principle": f"الآية الكريمة: {{{ayah_data.get('text')}}} [سورة {ref.surah} آية {ref.ayah}]",
+        "application": f"تفسير السعدي: {saadi_text[:400]}..." if saadi_text else "الرجاء مراجعة التفاسير المرفقة لاستخلاص التطبيق.",
+        "effect": f"تفسير ابن كثير: {katheer_text[:400]}..." if katheer_text else "الرجاء مراجعة التفاسير المرفقة لاستخلاص الأثر.",
+        "_display_instructions": (
+            "أنت الآن ريكي الشريك المعرفي. استنبط من هذه الآية وتفاسيرها وتحليل كلماتها "
+            "كبسولة الزيتونة المعرفية الثلاثية: المبدأ الجوهري العام، التطبيق العملي الواقعي، "
+            "والأثر الروحي والعملي المتوقع."
+        )
+    }
+
+    return {
+        "surah": ref.surah,
+        "ayah": ref.ayah,
+        "surah_name": surah_name,
+        "revelation_type": revelation_type,
+        "ayah_text": ayah_data.get("text"),
+        "word_count": ayah_data.get("word_count"),
+        "tafsirs": tafsir_data.get("tafsirs", []),
+        "words_analysis": words_analysis,
+        "nuzool": nuzool_data,
+        "qeraat": qeraat_entries,
+        "cognitive_insights": cognitive_insights,
+    }
+
+
 def register(mcp: FastMCP) -> None:
     mcp.tool(name="fetch_ayah", annotations=_ANNOTATIONS)(get_ayah)
     mcp.tool(name="fetch_tafsir", annotations=_ANNOTATIONS)(get_ayah_tafsir)
     mcp.tool(name="fetch_nuzool_reason", annotations=_ANNOTATIONS)(get_ayah_nuzool)
+    mcp.tool(name="deep_ayah_analysis", annotations=_ANNOTATIONS)(get_deep_ayah_analysis)
+

@@ -46,7 +46,7 @@ try:
     from tafsir.tools import qeraat as qeraat_tools
     from tafsir.tools import search as search_tools
     from tafsir.tools import stats as stats_tools
-    from tafsir.tools.ayah import get_ayah_tafsir, get_ayah
+    from tafsir.tools.ayah import get_ayah_tafsir, get_ayah, get_deep_ayah_analysis
     from tafsir.tools.search import search_quran_text
     
     # تسجيل الأدوات
@@ -228,6 +228,11 @@ class ExtractResponse(BaseModel):
     application: str
     effect: str
 
+class DeepAnalysisRequest(BaseModel):
+    surah: int = Field(ge=1, le=114, description="رقم السورة من 1 إلى 114")
+    ayah: int = Field(ge=1, description="رقم الآية في السورة")
+    sources: list[str] | None = Field(default=None, description="قائمة اختيارية بكتب التفسير المطلوبة")
+
 class TafsirRequest(BaseModel):
     surah: int = Field(ge=1, le=114)
     ayah: int = Field(ge=1)
@@ -328,6 +333,24 @@ def get_ayah_api(request: AyahRequest):
         
         result = get_ayah(request.surah, request.ayah, request.include)
         return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/ayah/deep-analysis",
+    summary="Get Deep Ayah Analysis",
+    description="Fetches an integrated Qur'an research capsule for any ayah including verbatim text, selected tafsirs, full word-by-word linguistic analysis (meaning, grammar, morphology, roots, frequencies), causes of revelation, qeraat variants, and structured cognitive extraction guidelines."
+)
+def get_deep_ayah_analysis_api(request: DeepAnalysisRequest):
+    try:
+        from tafsir.models import SURAH_AYAH_COUNTS
+        if request.ayah > SURAH_AYAH_COUNTS.get(request.surah, 286):
+            raise HTTPException(status_code=400, detail="رقم الآية خارج حدود السورة")
+        
+        result = get_deep_ayah_analysis(request.surah, request.ayah, request.sources)
+        return result
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
