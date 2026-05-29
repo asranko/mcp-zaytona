@@ -3,7 +3,5 @@ services:
     name: zaytona-mcp
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: fastmcp run server.py -t sse
-    envVars:
-      - key: PORT
-        value: 10000
+    startCommand: python server.py
+

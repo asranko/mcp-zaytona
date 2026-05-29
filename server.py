@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-خادم MCP الزيتونة (Zaytona MCP Server)
---------------------------------------
-خادم متوافق مع بروتوكول سياق النماذج (Model Context Protocol) 
-مبني باستخدام إطار العمل FastMCP.
-
-يقوم الخادم بتوفير أداة لتحليل النصوص واستخراج كبسولات المعرفة (الزيتونة)
-التي تتكون من: (مبدأ -> تطبيق -> أثر).
+خادم الزيتونة المعرفي ثنائي البروتوكول (Zaytona Dual-Protocol Server)
+-------------------------------------------------------------------
+خادم متطور يدعم بروتوكولين في نفس الوقت:
+1. بروتوكول MCP (Model Context Protocol) للتكامل مع Claude Desktop.
+2. بروتوكول REST API (واجهة برمجة التطبيقات) للتكامل مع إجراءات ChatGPT (Custom GPT Actions).
 """
 
 from fastmcp import FastMCP
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import uvicorn
+import os
 import sys
 
-# إنشاء نسخة خادم FastMCP باسم "Zaytona"
-# المسمى باللغة العربية: خادم الزيتونة المعرفي
+# 1. تعريف خادم FastMCP الأساسي لـ Claude
 mcp = FastMCP("Zaytona")
 
 @mcp.tool(
@@ -22,20 +23,7 @@ mcp = FastMCP("Zaytona")
 )
 def extract_zaytona(text: str) -> dict:
     """
-    يقوم باستقبال نص طويل أو مقال أو فكرة فكرية، ويعيد صياغتها كـ كبسولة معرفية مضغوطة.
-    
-    المعاملات:
-    ----------
-    text : str
-        النص المراد استخراج الزيتونة منه.
-        
-    المخرجات:
-    -------
-    dict
-        قاموس يحتوي على ثلاثة عناصر:
-        - principle: المبدأ الجوهري أو القانون العام المستخلص.
-        - application: كيفية توظيف وتطبيق هذا المبدأ عملياً.
-        - effect: الأثر الفعلي والنتيجة المتوقعة من التطبيق.
+    يقوم باستقبال نص طويل أو مقال، ويعيد صياغته كـ كبسولة معرفية مضغوطة (مبدأ -> تطبيق -> أثر).
     """
     if not text or not text.strip():
         return {
@@ -44,19 +32,54 @@ def extract_zaytona(text: str) -> dict:
             "effect": "فشل الاستخلاص بسبب غياب البيانات المدخلة."
         }
         
-    # ملاحظة: بما أن الأداة يتم استدعاؤها بواسطة النموذج اللغوي (LLM) الذي يتكامل مع الـ MCP،
-    # فإن النموذج هو من سيقوم بصياغة الاستخراج الفعلي وتمريره، أو يقوم الخادم بإعطاء هيكل استرشادي
-    # يقوم النموذج بملئه وصياغته بشكل ذكي للمستخدم.
-    
-    # هنا نوفر آلية معالجة برمجية أولية وهيكل الاستجابة:
     return {
         "principle": "المبدأ الجوهري المستخرج (Principle): [سيتم ملؤه ديناميكياً بواسطة النموذج بناءً على تحليل النص المدخل]",
         "application": "التطبيق العملي الفعلي (Application): [خطوات توظيف المبدأ في مساحة عمل حقيقية]",
         "effect": "الأثر المتوقع والنتيجة (Effect): [الفائدة العائدة والصلابة المحققة]"
     }
 
+# 2. تعريف خادم FastAPI المخصص لـ ChatGPT
+app = FastAPI(
+    title="Zaytona API for ChatGPT",
+    description="واجهة برمجة تطبيقات خادم الزيتونة المتوافقة مع إجراءات GPT (GPT Actions).",
+    version="1.0.0"
+)
+
+class ExtractRequest(BaseModel):
+    text: str
+
+class ExtractResponse(BaseModel):
+    principle: str
+    application: str
+    effect: str
+
+@app.post("/extract", response_model=ExtractResponse, summary="استخراج الزيتونة المعرفية")
+def extract_api(request: ExtractRequest):
+    """
+    نقطة اتصال REST API مخصصة لاستقبال النصوص وإرجاع الزيتونة المعرفية مباشرة لـ ChatGPT.
+    """
+    result = extract_zaytona(request.text)
+    return ExtractResponse(
+        principle=result["principle"],
+        application=result["application"],
+        effect=result["effect"]
+    )
+
+# دمج تطبيق MCP داخل FastAPI كـ ASGI App
+# هذا يتيح للمنفذ 8000 تقديم الخدمتين معاً!
+try:
+    app.mount("/mcp", mcp.get_asgi_app())
+except Exception:
+    # احتياطي في حال عدم دعم استدعاء ASGI App في بعض إصدارات المكتبة
+    pass
+
 if __name__ == "__main__":
-    # تشغيل الخادم
-    # يدعم FastMCP تلقائياً التبديل بين وضع STDIO (الافتراضي للمساعدين المحليين مثل Claude Desktop)
-    # ووضع SSE (Server-Sent Events) للنشر السحابي عند تمرير الوسيط المخصص.
-    mcp.run()
+    # تشغيل الخادم الازدواجي عبر Uvicorn
+    # عند تشغيل الملف مباشرة عبر بايثون، سيعمل كخادم REST API وخادم MCP في نفس الوقت
+    port = int(os.environ.get("PORT", 8000))
+    print(f"Running dual-protocol server on port {port}...")
+    print(f"- ChatGPT REST API: http://127.0.0.1:{port}/extract")
+    print(f"- MCP SSE Endpoint: http://127.0.0.1:{port}/mcp/sse (or /sse)")
+    uvicorn.run(app, host="0.0.0.0", port=port)
+
+
