@@ -227,17 +227,10 @@ class SearchRequest(BaseModel):
     query: str
     limit: int = 10
 
-@app.get("/", summary="صفحة الترحيب وحالة الخادم", include_in_schema=False)
+@app.get("/", summary="مخطط OpenAPI المباشر", include_in_schema=False)
 def root_endpoint():
-    return {
-        "status": "active",
-        "message": "مرحباً بك في خادم الزيتونة المعرفي المطور! الخادم مرتبط بقاعدة بيانات التفاسير الإسلامية بالكامل.",
-        "endpoints": {
-            "chatgpt_openapi": "https://zaytona-mcp.onrender.com/openapi.json",
-            "interactive_docs": "https://zaytona-mcp.onrender.com/docs",
-            "mcp_sse": "https://zaytona-mcp.onrender.com/mcp/sse"
-        }
-    }
+    # إرجاع مخطط OpenAPI مباشرة لتسهيل الربط في ChatGPT بالرابط الأساسي للسيرفر فقط دون أي مسارات إضافية
+    return app.openapi()
 
 @app.post(
     "/extract",
