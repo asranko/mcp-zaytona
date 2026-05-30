@@ -2,6 +2,6 @@ services:
   - type: web
     name: zaytona-mcp
     runtime: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && python scripts/download_all_dbs.py
     startCommand: python server.py
 

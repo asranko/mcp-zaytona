@@ -7,3 +7,7 @@ __pycache__/
 venv/
 env/
 .env
+
+# قواعد البيانات — يتم تحميلها أثناء البناء (Build Phase) على Render
+data/*.db
+scratch/

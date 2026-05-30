@@ -11,6 +11,20 @@ DB_SHA256 = "10e61f615ab5e6a3440e8ecc8ba1dc2273d12cd9048752760fe53a44d191cc27"
 DB_SIZE_MB = 214
 
 
+
+def _get_local_data_path(filename: str) -> Path:
+    """الحصول على مسار ملف البيانات المحلي بدعم كلا الهيكلين (src/ أو Root)."""
+    # 1. هيكل Root (الزيتونة الحالي)
+    p1 = Path(__file__).parent.parent / "data" / filename
+    if p1.exists():
+        return p1
+    # 2. هيكل src/ الاحتياطي (Tafsir MCP)
+    p2 = Path(__file__).parent.parent.parent / "data" / filename
+    if p2.exists():
+        return p2
+    return p1  # الافتراضي هو Root
+
+
 def _verify_sha256(path: Path) -> None:
     """تحقّق من سلامة الملف عبر SHA256."""
     h = hashlib.sha256()
@@ -72,7 +86,7 @@ def get_db_path() -> Path:
         if path.exists():
             return path
 
-    local = Path(__file__).parent.parent.parent / "data" / DB_FILENAME
+    local = _get_local_data_path(DB_FILENAME)
     if local.exists():
         return local
 
@@ -136,7 +150,7 @@ def get_jalalayn_db_path() -> Path:
         if path.exists():
             return path
 
-    local = Path(__file__).parent.parent.parent / "data" / "jalalayn.db"
+    local = _get_local_data_path("jalalayn.db")
     if local.exists():
         return local
 
@@ -208,7 +222,7 @@ def get_extended_db_path() -> Path:
         if path.exists():
             return path
 
-    local = Path(__file__).parent.parent.parent / "data" / EXTENDED_DB_FILENAME
+    local = _get_local_data_path(EXTENDED_DB_FILENAME)
     if local.exists():
         return local
 
@@ -278,7 +292,7 @@ def get_lexicon_db_path() -> Path:
         if path.exists():
             return path
 
-    local = Path(__file__).parent.parent.parent / "data" / LEXICONS_DB_FILENAME
+    local = _get_local_data_path(LEXICONS_DB_FILENAME)
     if local.exists():
         return local
 
