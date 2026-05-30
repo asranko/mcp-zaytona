@@ -73,7 +73,7 @@ def get_ayah(
 def get_ayah_tafsir(
     surah: int,
     ayah: int,
-    sources: list[str] | None = None,
+    sources: list[TafsirSource] | None = None,
 ) -> dict:
     """جلب تفسير آية من مصدر أو أكثر.
 
@@ -101,7 +101,7 @@ def get_ayah_tafsir(
        himyan_zad
     """
     ref = AyahReference(surah=surah, ayah=ayah)
-    requested = [TafsirSource(s) for s in (sources or ["saadi"])]
+    requested = sources or [TafsirSource.saadi]
 
     tafsirs: list[TafsirEntry] = []
     for src in requested:
@@ -154,7 +154,7 @@ def get_ayah_nuzool(surah: int, ayah: int) -> dict:
 def get_deep_ayah_analysis(
     surah: int,
     ayah: int,
-    sources: list[str] | None = None,
+    sources: list[TafsirSource] | None = None,
 ) -> dict:
     """تحليل معرفي وبحثي موحد لآية قرآنية يجمع التفسير، الكلمات، الإعراب، الصرف، أسباب النزول، والقراءات.
 
