@@ -4,6 +4,8 @@
 --------------------------------------------------------------------------------
 يضمن هذا الملف تحميل القواعد سحابياً وتخزينها في مجلد data/ محلياً،
 مما يمنع أي تحميل ديناميكي عند التشغيل، ويقضي على مشكلة نفاد الذاكرة (OOM) أو مسح الكاش.
+
+v2.0: يستخدم 4 ملفات shard بدلاً من ملف extended_tafsir.db واحد (1 GB → 4 × 260 MB)
 """
 
 import os
@@ -23,7 +25,11 @@ DB_REPO_ID = "asranko40/tafsir-mcp-data"
 DB_FILES = {
     "quran.db": "quran.db",
     "jalalayn.db": "jalalayn.db",
-    "extended_tafsir.db": "extended_tafsir.db",
+    # 4 shards بدلاً من ملف extended_tafsir.db واحد
+    "extended_tafsir_s1.db": "extended_tafsir_s1.db",
+    "extended_tafsir_s2.db": "extended_tafsir_s2.db",
+    "extended_tafsir_s3.db": "extended_tafsir_s3.db",
+    "extended_tafsir_s4.db": "extended_tafsir_s4.db",
     "lexicons.db": "lexicons.db"
 }
 
@@ -74,8 +80,14 @@ def main():
         except Exception as e:
             print(f"❌ Failed to download {filename}: {e}")
             sys.exit(1)
+
+    # تنظيف ملف extended_tafsir.db القديم إن وُجد (لتوفير المساحة)
+    old_extended = data_dir / "extended_tafsir.db"
+    if old_extended.exists():
+        print(f"🧹 Removing old extended_tafsir.db ({round(old_extended.stat().st_size / 1024 / 1024, 1)} MB) — replaced by 4 shards.")
+        old_extended.unlink()
             
-    print("\n🎉 All 4 databases successfully downloaded and packaged for production deployment!")
+    print(f"\n🎉 All {len(DB_FILES)} databases successfully downloaded and packaged for production deployment!")
 
 if __name__ == "__main__":
     main()

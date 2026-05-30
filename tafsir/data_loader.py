@@ -171,14 +171,18 @@ def get_jalalayn_db_path() -> Path:
     return cache_db
 
 
-# ─── قاعدة البيانات الموسعة (32 تفسيراً إضافياً) ───
+# ─── قواعد البيانات الموسعة (86 تفسيراً — 4 أجزاء مقسّمة) ───
 
-EXTENDED_DB_FILENAME = "extended_tafsir.db"
-EXTENDED_DB_SIZE_MB = 385
+EXTENDED_SHARD_FILES = [
+    "extended_tafsir_s1.db",
+    "extended_tafsir_s2.db",
+    "extended_tafsir_s3.db",
+    "extended_tafsir_s4.db",
+]
 
 
-def _download_extended_from_hf(target: Path) -> None:
-    """تحميل extended_tafsir.db من Hugging Face عند أول تشغيل سحابي."""
+def _download_shard_from_hf(shard_filename: str, target: Path) -> None:
+    """تحميل ملف shard واحد من Hugging Face."""
     try:
         from huggingface_hub import hf_hub_download
     except ImportError as e:
@@ -191,14 +195,13 @@ def _download_extended_from_hf(target: Path) -> None:
     token = os.environ.get("HF_TOKEN")
 
     print(
-        f"📥 Downloading Extended Tafsir database ({EXTENDED_DB_SIZE_MB} MB) "
-        f"from Hugging Face — first run only...",
+        f"📥 Downloading {shard_filename} from Hugging Face...",
         file=sys.stderr,
     )
 
     downloaded_path = hf_hub_download(
         repo_id=repo_id,
-        filename=EXTENDED_DB_FILENAME,
+        filename=shard_filename,
         repo_type="dataset",
         token=token,
     )
@@ -206,41 +209,44 @@ def _download_extended_from_hf(target: Path) -> None:
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(downloaded_path, target)
 
-    print(f"✅ Extended database saved to {target}", file=sys.stderr)
+    size_mb = round(target.stat().st_size / 1024 / 1024, 1)
+    print(f"✅ {shard_filename} saved ({size_mb} MB) → {target}", file=sys.stderr)
 
 
-def get_extended_db_path() -> Path:
-    """احصل على مسار extended_tafsir.db مع تحميل تلقائي عند الحاجة.
+def get_extended_shard_path(shard_filename: str) -> Path:
+    """احصل على مسار ملف shard معيّن مع تحميل تلقائي عند الحاجة.
 
     أولوية البحث:
-    1. متغير البيئة EXTENDED_TAFSIR_DB_PATH
-    2. data/extended_tafsir.db المحلي (المشروع)
-    3. ~/.cache/tafsir-mcp/extended_tafsir.db (وضع الإنتاج، يُحمَّل من HF)
+    1. data/<shard> المحلي (المشروع / الإنتاج بعد البناء)
+    2. ~/.cache/tafsir-mcp/<shard> (وضع الإنتاج الاحتياطي)
     """
-    if env_path := os.environ.get("EXTENDED_TAFSIR_DB_PATH"):
-        path = Path(env_path)
-        if path.exists():
-            return path
-
-    local = _get_local_data_path(EXTENDED_DB_FILENAME)
+    local = _get_local_data_path(shard_filename)
     if local.exists():
         return local
 
     cache_dir = Path.home() / ".cache" / "tafsir-mcp"
-    cache_db = cache_dir / EXTENDED_DB_FILENAME
+    cache_db = cache_dir / shard_filename
 
     if not cache_db.exists():
         try:
-            _download_extended_from_hf(cache_db)
+            _download_shard_from_hf(shard_filename, cache_db)
         except Exception as e:
             print(
-                f"⚠️ فشل تحميل قاعدة البيانات الموسعة: {e}\n"
-                f"التفاسير الموسعة لن تكون متاحة.",
+                f"⚠️ فشل تحميل {shard_filename}: {e}\n"
+                f"بعض التفاسير لن تكون متاحة.",
                 file=sys.stderr,
             )
-            return cache_db  # يعيد المسار حتى لو لم يوجد الملف
+            return cache_db
 
     return cache_db
+
+
+def get_extended_db_path() -> Path:
+    """(توافق عكسي) يعيد مسار أول shard كبديل.
+
+    ⚠️ مهمل: استخدم get_extended_shard_path() بدلاً منه.
+    """
+    return get_extended_shard_path(EXTENDED_SHARD_FILES[0])
 
 
 # ─── قاعدة بيانات المعاجم اللغوية (لسان العرب، مقاييس اللغة، مفردات الأصفهاني) ───
