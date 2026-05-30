@@ -228,3 +228,74 @@ def get_extended_db_path() -> Path:
 
     return cache_db
 
+
+# ─── قاعدة بيانات المعاجم اللغوية (لسان العرب، مقاييس اللغة، مفردات الأصفهاني) ───
+
+LEXICONS_DB_FILENAME = "lexicons.db"
+
+
+def _download_lexicons_from_hf(target: Path) -> None:
+    """تحميل lexicons.db من Hugging Face عند أول تشغيل سحابي."""
+    try:
+        from huggingface_hub import hf_hub_download
+    except ImportError as e:
+        raise RuntimeError(
+            "مكتبة huggingface_hub غير متوفرة. "
+            "ثبّتها عبر: pip install huggingface_hub"
+        ) from e
+
+    repo_id = os.environ.get("HF_REPO_ID", DB_REPO_ID)
+    token = os.environ.get("HF_TOKEN")
+
+    print(
+        f"📥 Downloading Lexicons database from Hugging Face — first run only...",
+        file=sys.stderr,
+    )
+
+    downloaded_path = hf_hub_download(
+        repo_id=repo_id,
+        filename=LEXICONS_DB_FILENAME,
+        repo_type="dataset",
+        token=token,
+    )
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(downloaded_path, target)
+
+    print(f"✅ Lexicons database saved to {target}", file=sys.stderr)
+
+
+def get_lexicon_db_path() -> Path:
+    """احصل على مسار lexicons.db مع تحميل تلقائي عند الحاجة.
+
+    أولوية البحث:
+    1. متغير البيئة LEXICONS_DB_PATH
+    2. data/lexicons.db المحلي (المشروع)
+    3. ~/.cache/tafsir-mcp/lexicons.db (وضع الإنتاج، يُحمَّل من HF)
+    """
+    if env_path := os.environ.get("LEXICONS_DB_PATH"):
+        path = Path(env_path)
+        if path.exists():
+            return path
+
+    local = Path(__file__).parent.parent.parent / "data" / LEXICONS_DB_FILENAME
+    if local.exists():
+        return local
+
+    cache_dir = Path.home() / ".cache" / "tafsir-mcp"
+    cache_db = cache_dir / LEXICONS_DB_FILENAME
+
+    if not cache_db.exists():
+        try:
+            _download_lexicons_from_hf(cache_db)
+        except Exception as e:
+            print(
+                f"⚠️ فشل تحميل قاعدة بيانات المعاجم: {e}\n"
+                f"المعاجم لن تكون متاحة.",
+                file=sys.stderr,
+            )
+            return cache_db
+
+    return cache_db
+
+

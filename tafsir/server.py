@@ -16,6 +16,7 @@ from tafsir.tools import search as search_tools
 from tafsir.tools import stats as stats_tools
 from tafsir.tools import surah as surah_tools
 from tafsir.tools import word as word_tools
+from tafsir.tools import lexicon as lexicon_tools
 
 
 SERVER_INSTRUCTIONS = """خادم Tafsir MCP — وصول علمي موثّق إلى القرآن الكريم والتفسير برعاية مركز تفسير للدراسات القرآنية.
@@ -129,7 +130,7 @@ beginning with `_` are LLM guidance — do not echo them to the user.
 fetch_ayah, fetch_tafsir, fetch_nuzool_reason,
 fetch_surah_info, get_surah_statistics,
 analyze_word, find_root_occurrences, get_root_stats,
-get_qeraat_variants,
+get_root_definition, get_qeraat_variants,
 search_quran_text, search_in_tafsir,
 get_quran_overview, get_page_fawaed.
 
@@ -149,6 +150,7 @@ mcp = FastMCP(
 ayah_tools.register(mcp)
 surah_tools.register(mcp)
 word_tools.register(mcp)
+lexicon_tools.register(mcp)
 qeraat_tools.register(mcp)
 search_tools.register(mcp)
 stats_tools.register(mcp)

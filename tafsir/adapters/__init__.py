@@ -47,6 +47,16 @@ ADAPTERS: dict[TafsirSource, TafsirAdapter] = {
     TafsirSource.izz_bin_abd_salam: ExtendedTafsirAdapter("izz_bin_abd_salam"),
     TafsirSource.ibn_rajab: ExtendedTafsirAdapter("ibn_rajab"),
     TafsirSource.maturidi: ExtendedTafsirAdapter("maturidi"),
+    TafsirSource.durr_manthur: ExtendedTafsirAdapter("durr_manthur"),
+    TafsirSource.nazm_durar: ExtendedTafsirAdapter("nazm_durar"),
+    TafsirSource.ghareeb_quran: ExtendedTafsirAdapter("ghareeb_quran"),
+    TafsirSource.gharaib_quran: ExtendedTafsirAdapter("gharaib_quran"),
+    TafsirSource.tadhkirat_areeb: ExtendedTafsirAdapter("tadhkirat_areeb"),
+    TafsirSource.durr_masun: ExtendedTafsirAdapter("durr_masun"),
+    TafsirSource.lubab_ulum: ExtendedTafsirAdapter("lubab_ulum"),
+    TafsirSource.manar: ExtendedTafsirAdapter("manar"),
+    TafsirSource.safwat: ExtendedTafsirAdapter("safwat"),
+    TafsirSource.asbab_nuzul: ExtendedTafsirAdapter("asbab_nuzul"),
 }
 
 __all__ = ["TafsirAdapter", "ADAPTERS"]

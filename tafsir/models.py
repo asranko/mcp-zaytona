@@ -68,6 +68,16 @@ class TafsirSource(StrEnum):
     izz_bin_abd_salam = "izz_bin_abd_salam"
     ibn_rajab = "ibn_rajab"
     maturidi = "maturidi"
+    durr_manthur = "durr_manthur"
+    nazm_durar = "nazm_durar"
+    ghareeb_quran = "ghareeb_quran"
+    gharaib_quran = "gharaib_quran"
+    tadhkirat_areeb = "tadhkirat_areeb"
+    durr_masun = "durr_masun"
+    lubab_ulum = "lubab_ulum"
+    manar = "manar"
+    safwat = "safwat"
+    asbab_nuzul = "asbab_nuzul"
 
 
 TAFSIR_ATTRIBUTIONS: dict[TafsirSource, str] = {
@@ -113,6 +123,16 @@ TAFSIR_ATTRIBUTIONS: dict[TafsirSource, str] = {
     TafsirSource.izz_bin_abd_salam: "تفسير العز بن عبد السلام، عبد العزيز بن عبد السلام (ت. 660هـ)",
     TafsirSource.ibn_rajab:      "تفسير ابن رجب الحنبلي، عبد الرحمن بن رجب (ت. 795هـ)",
     TafsirSource.maturidi:       "تأويلات أهل السنة (تفسير الماتريدي)، أبو منصور الماتريدي (ت. 333هـ)",
+    TafsirSource.durr_manthur:    "تفسير الدر المنثور في التفسير بالمأثور، جلال الدين السيوطي (ت. 911هـ)",
+    TafsirSource.nazm_durar:      "نظم الدرر في تناسب الآيات والسور، برهان الدين البقاعي (ت. 885هـ)",
+    TafsirSource.ghareeb_quran:   "تفسير غريب القرآن، زيد بن علي (ت. 120هـ)",
+    TafsirSource.gharaib_quran:   "غرائب القرآن ورغائب الفرقان، نظام الدين النيسابوري (ت. 728هـ)",
+    TafsirSource.tadhkirat_areeb: "تذكرة الأريب في تفسير الغريب، أبو الفرج ابن الجوزي (ت. 597هـ)",
+    TafsirSource.durr_masun:      "الدر المصون في علوم الكتاب المكنون، السمين الحلبي (ت. 756هـ)",
+    TafsirSource.lubab_ulum:      "اللباب في علوم الكتاب، ابن عادل الحنبلي (ت. 880هـ)",
+    TafsirSource.manar:           "تفسير المنار، محمد رشيد رضا (ت. 1354هـ)",
+    TafsirSource.safwat:          "صفوة التفاسير، محمد علي الصابوني (ت. 1442هـ / 2021م)",
+    TafsirSource.asbab_nuzul:     "صحيح أسباب النزول دراسة حديثية، إبراهيم محمد العلي (مؤلف معاصر)",
 }
 
 
