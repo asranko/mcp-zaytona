@@ -46,6 +46,7 @@ try:
     from tafsir.tools import qeraat as qeraat_tools
     from tafsir.tools import search as search_tools
     from tafsir.tools import stats as stats_tools
+    from tafsir.tools import lexicon as lexicon_tools
     from tafsir.tools.ayah import get_ayah_tafsir, get_ayah, get_deep_ayah_analysis
     from tafsir.tools.search import search_quran_text
     
@@ -53,6 +54,7 @@ try:
     ayah_tools.register(mcp)
     surah_tools.register(mcp)
     word_tools.register(mcp)
+    lexicon_tools.register(mcp)
     qeraat_tools.register(mcp)
     search_tools.register(mcp)
     stats_tools.register(mcp)
@@ -263,6 +265,9 @@ class RootOccurrencesRequest(BaseModel):
 class RootStatsRequest(BaseModel):
     root: str = Field(description="الجذر اللغوي المراد عرض إحصائياته (مثال: رحم، كتب)")
 
+class RootDefinitionRequest(BaseModel):
+    root: str = Field(description="الجذر اللغوي للبحث عنه في المعاجم (مثال: رحم، كتب)")
+
 class QeraatRequest(BaseModel):
     surah: int = Field(ge=1, le=114, description="رقم السورة من 1 إلى 114")
     ayah: int = Field(ge=1, description="رقم الآية في السورة")
@@ -433,6 +438,19 @@ def get_root_stats_api(request: RootStatsRequest):
     try:
         from tafsir.tools.word import get_root_statistics
         result = get_root_statistics(request.root)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/root/definition",
+    summary="Get Root Definition in Classical Lexicons",
+    description="Searches for the meaning of a linguistic root in classical Arabic lexicons: Lisan al-Arab, Maqayis al-Lugha, and Mufradat al-Raghib."
+)
+def get_root_definition_api(request: RootDefinitionRequest):
+    try:
+        from tafsir.tools.lexicon import get_root_definition
+        result = get_root_definition(request.root)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
