@@ -222,6 +222,8 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
+from tafsir.models import TafsirSource
+
 class ExtractRequest(BaseModel):
     text: str
 
@@ -233,12 +235,12 @@ class ExtractResponse(BaseModel):
 class DeepAnalysisRequest(BaseModel):
     surah: int = Field(ge=1, le=114, description="رقم السورة من 1 إلى 114")
     ayah: int = Field(ge=1, description="رقم الآية في السورة")
-    sources: list[str] | None = Field(default=None, description="قائمة اختيارية بكتب التفسير المطلوبة")
+    sources: list[TafsirSource] | None = Field(default=None, description="قائمة اختيارية بكتب التفسير المطلوبة")
 
 class TafsirRequest(BaseModel):
     surah: int = Field(ge=1, le=114)
     ayah: int = Field(ge=1)
-    sources: list[str] | None = None
+    sources: list[TafsirSource] | None = None
 
 class AyahRequest(BaseModel):
     surah: int = Field(ge=1, le=114)
@@ -282,7 +284,7 @@ class PageRequest(BaseModel):
 
 class TafsirSearchRequest(BaseModel):
     query: str = Field(description="نص البحث المراد البحث عنه في التفاسير")
-    source: str = Field(default="saadi", description="رمز التفسير المختار (مثال: saadi, katheer, qurtubi, sharawi, tabary)")
+    source: TafsirSource = Field(default=TafsirSource.saadi, description="رمز التفسير المختار")
     surah_filter: list[int] | None = Field(default=None, description="قائمة اختيارية بأرقام السور لتصفية نتائج البحث")
     limit: int = Field(default=20, ge=1, le=100, description="الحد الأقصى لعدد النتائج")
 
