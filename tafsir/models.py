@@ -78,6 +78,50 @@ class TafsirSource(StrEnum):
     manar = "manar"
     safwat = "safwat"
     asbab_nuzul = "asbab_nuzul"
+    ayat_ahkam = "ayat_ahkam"
+    aysar_jazairi = "aysar_jazairi"
+    aysar_homod = "aysar_homod"
+    burhan_bahrani = "burhan_bahrani"
+    tawilat_najmiyya = "tawilat_najmiyya"
+    tibyan_tusi = "tibyan_tusi"
+    tabarani = "tabarani"
+    ibn_arafa = "ibn_arafa"
+    jawahir_thaalbi = "jawahir_thaalbi"
+    safi_kashani = "safi_kashani"
+    sirat_mustaqim = "sirat_mustaqim"
+    muntakhab = "muntakhab"
+    nahr_madd = "nahr_madd"
+    aaqam = "aaqam"
+    jilani = "jilani"
+    hubari = "hubari"
+    ibn_arabi = "ibn_arabi"
+    ibn_abi_zamnin = "ibn_abi_zamnin"
+    tustari = "tustari"
+    fairuzabadi = "fairuzabadi"
+    qummi = "qummi"
+    nasai = "nasai"
+    hidayah_maki = "hidayah_maki"
+    bayan_saadah = "bayan_saadah"
+    sufyan_thawri = "sufyan_thawri"
+    sadr_mutaallhin = "sadr_mutaallhin"
+    abd_razzaq = "abd_razzaq"
+    furat_kufi = "furat_kufi"
+    hawari = "hawari"
+    mujahid = "mujahid"
+    taysir_atfiyyish = "taysir_atfiyyish"
+    taysir_qattan = "taysir_qattan"
+    jawahir_khalili = "jawahir_khalili"
+    hashiyat_sawi = "hashiyat_sawi"
+    haqaiq_sulami = "haqaiq_sulami"
+    rumuz_kunuz = "rumuz_kunuz"
+    ruh_bayan = "ruh_bayan"
+    araais_bayan = "araais_bayan"
+    nuzhat_qulub = "nuzhat_qulub"
+    majma_bayan = "majma_bayan"
+    mahasin_tawil = "mahasin_tawil"
+    mukhtasar_katheer = "mukhtasar_katheer"
+    muqatil = "muqatil"
+    himyan_zad = "himyan_zad"
 
 
 TAFSIR_ATTRIBUTIONS: dict[TafsirSource, str] = {
@@ -133,6 +177,50 @@ TAFSIR_ATTRIBUTIONS: dict[TafsirSource, str] = {
     TafsirSource.manar:           "تفسير المنار، محمد رشيد رضا (ت. 1354هـ)",
     TafsirSource.safwat:          "صفوة التفاسير، محمد علي الصابوني (ت. 1442هـ / 2021م)",
     TafsirSource.asbab_nuzul:     "صحيح أسباب النزول دراسة حديثية، إبراهيم محمد العلي (مؤلف معاصر)",
+    TafsirSource.ayat_ahkam: "روائع البيان في تفسير آيات الأحكام، محمد علي الصابوني",
+    TafsirSource.aysar_jazairi: "أيسر التفاسير لكلام العلي الكبير، أبو بكر الجزائري",
+    TafsirSource.aysar_homod: "أيسر التفاسير، د. أسعد حومد",
+    TafsirSource.burhan_bahrani: "البرهان في تفسير القرآن، السيد هاشم البحراني",
+    TafsirSource.tawilat_najmiyya: "التأويلات النجمية في التفسير الإشاري الصوفي، أحمد بن عمر النجم الدين كبرى",
+    TafsirSource.tibyan_tusi: "التبيان في تفسير القرآن، الشيخ الطوسي",
+    TafsirSource.tabarani: "التفسير الكبير، الإمام الطبراني",
+    TafsirSource.ibn_arafa: "تفسير ابن عرفة، أبو عبد الله محمد بن عرفة الورغمي",
+    TafsirSource.jawahir_thaalbi: "الجواهر الحسان في تفسير القرآن، عبد الرحمن الثعالبي",
+    TafsirSource.safi_kashani: "التفسير الصافي، الفيض الكاشاني",
+    TafsirSource.sirat_mustaqim: "الصراط المستقيم في تبيان القرآن الكريم (تفسير الكازروني)",
+    TafsirSource.muntakhab: "المنتخب في تفسير القرآن الكريم، المجلس الأعلى للشؤون الإسلامية بمصر",
+    TafsirSource.nahr_madd: "النهر الماد من البحر المحيط، أبو حيان الأندلسي",
+    TafsirSource.aaqam: "تفسير الأعقم، محمد بن شرف الدين الأعقم",
+    TafsirSource.jilani: "تفسير الجيلاني، عبد القادر الجيلاني",
+    TafsirSource.hubari: "تفسير الحبري، الحسين بن الحكم الحبري",
+    TafsirSource.ibn_arabi: "تفسير ابن عربي، محيي الدين بن عربي",
+    TafsirSource.ibn_abi_zamnin: "تفسير القرآن العزيز، ابن أبي زمنين",
+    TafsirSource.tustari: "تفسير التستري، سهل بن عبد الله التستري",
+    TafsirSource.fairuzabadi: "تنوير المقباس من تفسير ابن عباس (تفسير الفيروز آبادي)",
+    TafsirSource.qummi: "تفسير القمي، علي بن إبراهيم القمي",
+    TafsirSource.nasai: "تفسير النسائي، الإمام النسائي",
+    TafsirSource.hidayah_maki: "الهداية إلى بلوغ النهاية، مكي بن أبي طالب القيسي",
+    TafsirSource.bayan_saadah: "بيان السعادة في مقامات العبادة، سلطان محمد الجنابذي",
+    TafsirSource.sufyan_thawri: "تفسير سفيان الثوري، سفيان بن سعيد الثوري",
+    TafsirSource.sadr_mutaallhin: "تفسير صدر المتألهين، ملا صدرا الشيرازي",
+    TafsirSource.abd_razzaq: "تفسير عبد الرزاق، عبد الرزاق الصنعاني",
+    TafsirSource.furat_kufi: "تفسير فرات الكوفي، فرات بن إبراهيم الكوفي",
+    TafsirSource.hawari: "تفسير كتاب الله العزيز، هود بن محكم الهواري",
+    TafsirSource.mujahid: "تفسير مجاهد، مجاهد بن جبر المخزومي",
+    TafsirSource.taysir_atfiyyish: "تيسير التفسير، محمد بن يوسف أطفيش",
+    TafsirSource.taysir_qattan: "تيسير التفسير، أحمد مصطفى القطان",
+    TafsirSource.jawahir_khalili: "جواهر التفسير أنوار من بيان التنزيل، أحمد بن حمد الخليلي",
+    TafsirSource.hashiyat_sawi: "حاشية الصاوي على تفسير الجلالين، أحمد بن محمد الصاوي",
+    TafsirSource.haqaiq_sulami: "حقائق التفسير، أبو عبد الرحمن السلمي",
+    TafsirSource.rumuz_kunuz: "رموز الكنوز في تفسير الكتاب العزيز، عز الدين الرسعني",
+    TafsirSource.ruh_bayan: "روح البيان، إسماعيل حقي البروسوي",
+    TafsirSource.araais_bayan: "عرائس البيان في حقائق القرآن، روزبهان البقلي الشيرازي",
+    TafsirSource.nuzhat_qulub: "نزهة القلوب في تفسير غريب القرآن، أبو بكر السجستاني",
+    TafsirSource.majma_bayan: "مجمع البيان في تفسير القرآن، الشيخ الطبرسي",
+    TafsirSource.mahasin_tawil: "محاسن التأويل، جمال الدين القاسمي",
+    TafsirSource.mukhtasar_katheer: "مختصر تفسير ابن كثير، محمد علي الصابوني",
+    TafsirSource.muqatil: "تفسير مقاتل بن سليمان، مقاتل بن سليمان البلخي",
+    TafsirSource.himyan_zad: "هميان الزاد إلى دار المعاد، محمد بن يوسف أطفيش",
 }
 
 

@@ -165,7 +165,7 @@ def surahs_catalog() -> str:
 
 @mcp.resource("quran://tafsirs")
 def tafsirs_catalog() -> str:
-    """فهرس 9 مصادر تفسيرية مع كامل بيانات الإسناد (JSON)."""
+    """فهرس 86 مصادر تفسيرية مع كامل بيانات الإسناد (JSON)."""
     return catalogs.get_tafsirs_catalog()
 
 

@@ -89,6 +89,16 @@ def get_ayah_tafsir(
        baydawi, khazin, ibn_juzayy, thalabi, mawirdi, samani, raghib_isfahani, ibn_atiyya,
        zad_al_masir, bahr_al_muhit, samarqandi, ibn_abi_hatim, wahidi_wasit, wahidi_wajiz,
        izz_bin_abd_salam, ibn_rajab, maturidi
+    4. مصادر أسباب النزول والتفاسير الإضافية (44 مصدراً إضافياً):
+       asbab_nuzul, durr_manthur, nazm_durar, ghareeb_quran, gharaib_quran, tadhkirat_areeb,
+       durr_masun, lubab_ulum, manar, safwat, ayat_ahkam, aysar_jazairi, aysar_homod,
+       burhan_bahrani, tawilat_najmiyya, tibyan_tusi, tabarani, ibn_arafa, jawahir_thaalbi,
+       safi_kashani, sirat_mustaqim, muntakhab, nahr_madd, aaqam, jilani, hubari, ibn_arabi,
+       ibn_abi_zamnin, tustari, fairuzabadi, qummi, nasai, hidayah_maki, bayan_saadah,
+       sufyan_thawri, sadr_mutaallhin, abd_razzaq, furat_kufi, hawari, mujahid, taysir_atfiyyish,
+       taysir_qattan, jawahir_khalili, hashiyat_sawi, haqaiq_sulami, rumuz_kunuz, ruh_bayan,
+       araais_bayan, nuzhat_qulub, majma_bayan, mahasin_tawil, mukhtasar_katheer, muqatil,
+       himyan_zad
     """
     ref = AyahReference(surah=surah, ayah=ayah)
     requested = [TafsirSource(s) for s in (sources or ["saadi"])]
