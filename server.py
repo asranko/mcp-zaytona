@@ -288,6 +288,23 @@ class TafsirSearchRequest(BaseModel):
     surah_filter: list[int] | None = Field(default=None, description="قائمة اختيارية بأرقام السور لتصفية نتائج البحث")
     limit: int = Field(default=20, ge=1, le=100, description="الحد الأقصى لعدد النتائج")
 
+class CompareTafsirRequest(BaseModel):
+    surah: int = Field(ge=1, le=114, description="رقم السورة من 1 إلى 114")
+    ayah: int = Field(ge=1, description="رقم الآية في السورة")
+    sources: list[TafsirSource] | None = Field(default=None, description="قائمة اختيارية بكتب التفسير المراد مقارنتها")
+
+class SearchAllTafsirsRequest(BaseModel):
+    query: str = Field(description="نص البحث المراد البحث عنه في التفاسير")
+    sources: list[str] | None = Field(default=None, description="قائمة اختيارية بأسماء المصادر للبحث فيها")
+    surah_filter: list[int] | None = Field(default=None, description="قائمة اختيارية بأرقام السور لتصفية نتائج البحث")
+    limit_per_source: int = Field(default=5, ge=1, le=20, description="الحد الأقصى لعدد النتائج لكل تفسير فردي")
+    total_limit: int = Field(default=30, ge=1, le=100, description="الحد الأقصى لعدد النتائج الإجمالي")
+
+class CompareSourcesRequest(BaseModel):
+    source_a: TafsirSource = Field(description="المصدر الأول للمقارنة")
+    source_b: TafsirSource = Field(description="المصدر الثاني للمقارنة")
+    topic: str | None = Field(default=None, description="موضوع اختياري للبحث والمقارنة فيه")
+
 @app.get("/", summary="مخطط OpenAPI المباشر", include_in_schema=False)
 def root_endpoint():
     # إرجاع مخطط OpenAPI مباشرة لتسهيل الربط في ChatGPT بالرابط الأساسي للسيرفر فقط دون أي مسارات إضافية
@@ -530,6 +547,57 @@ def search_tafsir_api(request: TafsirSearchRequest):
     try:
         from tafsir.tools.search import search_tafsir
         result = search_tafsir(request.query, source=request.source, surah_filter=request.surah_filter, limit=request.limit)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/ayah/compare",
+    summary="Compare Scholar Interpretations",
+    description="Fetches and structures interpretations of a specific ayah across multiple scholars, with methodology and doctrinal school metadata."
+)
+def compare_tafsir_api(request: CompareTafsirRequest):
+    try:
+        from tafsir.models import SURAH_AYAH_COUNTS
+        if request.ayah > SURAH_AYAH_COUNTS.get(request.surah, 286):
+            raise HTTPException(status_code=400, detail="رقم الآية خارج حدود السورة")
+        
+        from tafsir.tools.ayah import compare_tafsir
+        result = compare_tafsir(request.surah, request.ayah, request.sources)
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/tafsir/search-all",
+    summary="Global Search Across Tafsirs",
+    description="Searches for matching text snippets across all or a selected list of the 96 tafsir sources simultaneously, with database-level bulk query optimizations."
+)
+def search_all_tafsirs_api(request: SearchAllTafsirsRequest):
+    try:
+        from tafsir.tools.search import search_all_tafsirs
+        result = search_all_tafsirs(
+            request.query, 
+            sources=request.sources, 
+            surah_filter=request.surah_filter, 
+            limit_per_source=request.limit_per_source, 
+            total_limit=request.total_limit
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/sources/compare",
+    summary="Compare Two Scholar Sources",
+    description="Compares two classical or modern scholars' doctrinal schools and methodologies, returning comparative metadata and actual examples from classical touchpoint ayahs or custom topics."
+)
+def compare_sources_api(request: CompareSourcesRequest):
+    try:
+        from tafsir.tools.ayah import compare_sources
+        result = compare_sources(request.source_a, request.source_b, request.topic)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
